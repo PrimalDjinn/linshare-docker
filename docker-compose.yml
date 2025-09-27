@@ -63,8 +63,8 @@ services:
             start_period: 40s
         environment:
             # These variables are mandatory
-            - SMTP_HOST=linshare_mail
-            - SMTP_PORT=25
+            - SMTP_HOST=${SMTP_HOST:?Mandatory SMTP_HOST}
+            - SMTP_PORT=${SMTP_PORT:?Mandatory SMTP_PORT}
             - CLAMAV_HOST=linshare_clamav
             - POSTGRES_HOST=linshare_database
             - POSTGRES_PORT=5432
@@ -79,8 +79,8 @@ services:
             # - THUMBNAIL_HOST=thumbnail-server
             # - THUMBNAIL_PORT=8080
             # Default variables can be overriden if needed.
-            #- SMTP_USER=<undefined>
-            #- SMTP_PASSWORD=<undefined>
+            - SMTP_USER=${SMTP_USER:?Mandatory SMTP_USER}
+            - SMTP_PASSWORD=${SMTP_PASSWORD:?Mandatory SMTP_PASSWORD}
             #- CLAMAV_PORT=3310
             #- POSTGRES_PORT=5432
 
@@ -157,55 +157,55 @@ services:
         - "traefik.enable=true"
         - "traefik.http.routers.uploadrequest.rule=Host(`upload-request.linshare.local`)"
 
-    mail:
-      container_name: linshare_mail
-      image: docker.io/mailserver/docker-mailserver:10.5
-      hostname: mail
-      domainname: linshare.org
-      volumes:
-      - /var/mail
-      - /var/mail-state
-      - /var/log/mail/
-      - /tmp/docker-mailserver/
-      - /etc/localtime:/etc/localtime:ro
-      - ./conf/mail_conf/main.cf:/etc/postfix/main.cf
+    # mail:
+    #   container_name: linshare_mail
+    #   image: docker.io/mailserver/docker-mailserver:10.5
+    #   hostname: mail
+    #   domainname: linshare.org
+    #   volumes:
+    #   - /var/mail
+    #   - /var/mail-state
+    #   - /var/log/mail/
+    #   - /tmp/docker-mailserver/
+    #   - /etc/localtime:/etc/localtime:ro
+    #   - ./conf/mail_conf/main.cf:/etc/postfix/main.cf
 
-      environment:
-      - ENABLE_SPAMASSASSIN=0
-      - SPAMASSASSIN_SPAM_TO_INBOX=0
-      - ENABLE_POSTGREY=0
-      - DMS_DEBUG=1
-      - ENABLE_CLAMAV=0
-      - ENABLE_FAIL2BAN=0
-      - ONE_DIR=1
-      - DMS_DEBUG=0
-      - ENABLE_LDAP=1
-      - LDAP_SERVER_HOST=ldap://ldap:1389
-      - LDAP_SEARCH_BASE=ou=People,dc=linshare,dc=org
-      - LDAP_BIND_DN=cn=linshare,dc=linshare,dc=org
-      - LDAP_BIND_PW=linshare
-      - LDAP_QUERY_FILTER_DOMAIN=(&(|(mail=*@%s)(mailalias=*@%s)(mailGroupMember=*@%s))(mailEnabled=TRUE))
-      - LDAP_QUERY_FILTER_USER=(&(mail=%s)(mailEnabled=TRUE))
-      - LDAP_QUERY_FILTER_ALIAS=(&(mailAlias=%s)(mailEnabled=TRUE))
-      - LDAP_QUERY_FILTER_GROUP=(&(mailGroupMember=%s)(mailEnabled=TRUE))
-      - DOVECOT_AUTH_BIND=yes
-      - DOVECOT_USER_FILTER=(&(objectClass=PostfixBookMailAccount)(uid=%n))
-      - DOVECOT_USER_ATTRS=mailHomeDirectory=home,mailUidNumber=uid,mailGidNumber=gid,mailStorageDirectory=mail
-      - DOVECOT_PASS_FILTER=(&(objectClass=PostfixBookMailAccount)(uid=%n))
-      - DOVECOT_PASS_ATTRS=uid=user,userPassword=password
+    #   environment:
+    #   - ENABLE_SPAMASSASSIN=0
+    #   - SPAMASSASSIN_SPAM_TO_INBOX=0
+    #   - ENABLE_POSTGREY=0
+    #   - DMS_DEBUG=1
+    #   - ENABLE_CLAMAV=0
+    #   - ENABLE_FAIL2BAN=0
+    #   - ONE_DIR=1
+    #   - DMS_DEBUG=0
+    #   - ENABLE_LDAP=1
+    #   - LDAP_SERVER_HOST=ldap://ldap:1389
+    #   - LDAP_SEARCH_BASE=ou=People,dc=linshare,dc=org
+    #   - LDAP_BIND_DN=cn=linshare,dc=linshare,dc=org
+    #   - LDAP_BIND_PW=linshare
+    #   - LDAP_QUERY_FILTER_DOMAIN=(&(|(mail=*@%s)(mailalias=*@%s)(mailGroupMember=*@%s))(mailEnabled=TRUE))
+    #   - LDAP_QUERY_FILTER_USER=(&(mail=%s)(mailEnabled=TRUE))
+    #   - LDAP_QUERY_FILTER_ALIAS=(&(mailAlias=%s)(mailEnabled=TRUE))
+    #   - LDAP_QUERY_FILTER_GROUP=(&(mailGroupMember=%s)(mailEnabled=TRUE))
+    #   - DOVECOT_AUTH_BIND=yes
+    #   - DOVECOT_USER_FILTER=(&(objectClass=PostfixBookMailAccount)(uid=%n))
+    #   - DOVECOT_USER_ATTRS=mailHomeDirectory=home,mailUidNumber=uid,mailGidNumber=gid,mailStorageDirectory=mail
+    #   - DOVECOT_PASS_FILTER=(&(objectClass=PostfixBookMailAccount)(uid=%n))
+    #   - DOVECOT_PASS_ATTRS=uid=user,userPassword=password
 
-    webmail:
-      container_name: linshare_webmail
-      image: robbertkl/roundcube
-      volumes:
-          - ./conf/webmail_conf/config.inc.php:/var/www/config/config.inc.php
-      environment:
-          - ROUNDCUBE_DEFAULT_HOST=linshare_mail
-          - ROUNDCUBE_SMTP_SERVER=linshare_mail
-          - ROUNDCUBE_SMTP_PORT=25
-      labels:
-        - "traefik.enable=true"
-        - "traefik.http.routers.webmail.rule=Host(`webmail.linshare.local`)"
+    # webmail:
+    #   container_name: linshare_webmail
+    #   image: robbertkl/roundcube
+    #   volumes:
+    #       - ./conf/webmail_conf/config.inc.php:/var/www/config/config.inc.php
+    #   environment:
+    #       - ROUNDCUBE_DEFAULT_HOST=linshare_mail
+    #       - ROUNDCUBE_SMTP_SERVER=linshare_mail
+    #       - ROUNDCUBE_SMTP_PORT=25
+    #   labels:
+    #     - "traefik.enable=true"
+    #     - "traefik.http.routers.webmail.rule=Host(`webmail.linshare.local`)"
 
     documentation:
         container_name: linshare_documentation
@@ -230,11 +230,11 @@ services:
         volumes:
             - ./data/mongodb_data/db:/data/db
 
-    ldap:
-        image: linagora/linshare-ldap-for-tests:2.0
-        container_name: linshare_ldap
-        ports:
-          - "1389:1389"
+    # ldap:
+    #     image: linagora/linshare-ldap-for-tests:2.0
+    #     container_name: linshare_ldap
+    #     ports:
+    #       - "1389:1389"
 
     init:
         image: linagora/linshare-init:6.5.0
