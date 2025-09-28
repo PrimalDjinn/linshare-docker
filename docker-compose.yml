@@ -1,8 +1,4 @@
 # vim: syntax=yaml textwidth=120 expandtab tabstop=2 softtabstop=2 shiftwidth=2 autoindent
-
-# Docker compose file for a full-featured Linshare architecture
-version: '3.7'
-
 services:
 
     reverse-proxy:
@@ -10,15 +6,15 @@ services:
         container_name: linshare_reverse-proxy
         ports:
           - 443:443
+          - 80:80
 
         labels:
           - "traefik.enable=true"
-          - "traefik.http.routers.traefik.rule=Host(`traefik.linshare.local`)"
+          - "traefik.http.routers.traefik.rule=Host(`traefik.localhost`)"
           - "traefik.http.services.traefik.loadbalancer.server.port=8080"
 
         volumes:
           - ./conf/traefik:/etc/traefik
-          - ./ssl/:/ssl/
 
     docker-socket:
         container_name: linshare_docker-socket
@@ -61,6 +57,8 @@ services:
             timeout: 10s
             retries: 3
             start_period: 40s
+        env_file:
+            - .env
         environment:
             # These variables are mandatory
             - SMTP_HOST=${SMTP_HOST:?Mandatory SMTP_HOST}
@@ -104,7 +102,7 @@ services:
             - ./README.md:/usr/local/apache2/htdocs/md/README.md
         labels:
           - "traefik.enable=true"
-          - "traefik.http.routers.home.rule=Host(`home.linshare.local`)"
+          - "traefik.http.routers.home.rule=Host(`home.localhost`)"
 
     ui-user:
         container_name: linshare_ui-user
@@ -120,9 +118,9 @@ services:
             - backend
         labels:
           - "traefik.enable=true"
-          - "traefik.http.routers.user.rule=Host(`user.linshare.local`)"
+          - "traefik.http.routers.user.rule=Host(`user.localhost`)"
         environment:
-            - EXTERNAL_URL=user.linshare.local
+            - EXTERNAL_URL=user.localhost
             - TOMCAT_URL=backend
             - TOMCAT_PORT=8080
 
@@ -140,9 +138,9 @@ services:
             - backend
         labels:
           - "traefik.enable=true"
-          - "traefik.http.routers.admin.rule=Host(`admin.linshare.local`)"
+          - "traefik.http.routers.admin.rule=Host(`admin.localhost`)"
         environment:
-            - EXTERNAL_URL=admin.linshare.local
+            - EXTERNAL_URL=admin.localhost
             - TOMCAT_URL=backend
             - TOMCAT_PORT=8080
 
@@ -150,69 +148,19 @@ services:
       container_name: linshare_ui-upload-request
       image: linagora/linshare-ui-upload-request:6.5.0
       environment:
-        - EXTERNAL_URL=upload-request.linshare.local
+        - EXTERNAL_URL=upload-request.localhost
         - TOMCAT_URL=backend
         - TOMCAT_PORT=8080
       labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.uploadrequest.rule=Host(`upload-request.linshare.local`)"
-
-    # mail:
-    #   container_name: linshare_mail
-    #   image: docker.io/mailserver/docker-mailserver:10.5
-    #   hostname: mail
-    #   domainname: linshare.org
-    #   volumes:
-    #   - /var/mail
-    #   - /var/mail-state
-    #   - /var/log/mail/
-    #   - /tmp/docker-mailserver/
-    #   - /etc/localtime:/etc/localtime:ro
-    #   - ./conf/mail_conf/main.cf:/etc/postfix/main.cf
-
-    #   environment:
-    #   - ENABLE_SPAMASSASSIN=0
-    #   - SPAMASSASSIN_SPAM_TO_INBOX=0
-    #   - ENABLE_POSTGREY=0
-    #   - DMS_DEBUG=1
-    #   - ENABLE_CLAMAV=0
-    #   - ENABLE_FAIL2BAN=0
-    #   - ONE_DIR=1
-    #   - DMS_DEBUG=0
-    #   - ENABLE_LDAP=1
-    #   - LDAP_SERVER_HOST=ldap://ldap:1389
-    #   - LDAP_SEARCH_BASE=ou=People,dc=linshare,dc=org
-    #   - LDAP_BIND_DN=cn=linshare,dc=linshare,dc=org
-    #   - LDAP_BIND_PW=linshare
-    #   - LDAP_QUERY_FILTER_DOMAIN=(&(|(mail=*@%s)(mailalias=*@%s)(mailGroupMember=*@%s))(mailEnabled=TRUE))
-    #   - LDAP_QUERY_FILTER_USER=(&(mail=%s)(mailEnabled=TRUE))
-    #   - LDAP_QUERY_FILTER_ALIAS=(&(mailAlias=%s)(mailEnabled=TRUE))
-    #   - LDAP_QUERY_FILTER_GROUP=(&(mailGroupMember=%s)(mailEnabled=TRUE))
-    #   - DOVECOT_AUTH_BIND=yes
-    #   - DOVECOT_USER_FILTER=(&(objectClass=PostfixBookMailAccount)(uid=%n))
-    #   - DOVECOT_USER_ATTRS=mailHomeDirectory=home,mailUidNumber=uid,mailGidNumber=gid,mailStorageDirectory=mail
-    #   - DOVECOT_PASS_FILTER=(&(objectClass=PostfixBookMailAccount)(uid=%n))
-    #   - DOVECOT_PASS_ATTRS=uid=user,userPassword=password
-
-    # webmail:
-    #   container_name: linshare_webmail
-    #   image: robbertkl/roundcube
-    #   volumes:
-    #       - ./conf/webmail_conf/config.inc.php:/var/www/config/config.inc.php
-    #   environment:
-    #       - ROUNDCUBE_DEFAULT_HOST=linshare_mail
-    #       - ROUNDCUBE_SMTP_SERVER=linshare_mail
-    #       - ROUNDCUBE_SMTP_PORT=25
-    #   labels:
-    #     - "traefik.enable=true"
-    #     - "traefik.http.routers.webmail.rule=Host(`webmail.linshare.local`)"
+        - "traefik.http.routers.uploadrequest.rule=Host(`upload-request.localhost`)"
 
     documentation:
         container_name: linshare_documentation
         image: linagora/linshare-backend-documentation-webservice:6.5.0
         labels:
           - "traefik.enable=true"
-          - "traefik.http.routers.docs.rule=Host(`docs.linshare.local`)"
+          - "traefik.http.routers.docs.rule=Host(`docs.localhost`)"
           - "traefik.http.services.docs.loadbalancer.server.port=8080"
 
     clamav:
